@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Web Interactiva</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        header p {
+            color: #666;
+            margin-top: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        main {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .operation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .operation-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .operation-card.suma { border-top: 5px solid #3b82f6; }
+        .operation-card.resta { border-top: 5px solid #10b981; }
+        .operation-card.multiplicacion { border-top: 5px solid #8b5cf6; }
+        .operation-card.division { border-top: 5px solid #f59e0b; }
+        .operation-card.potencia { border-top: 5px solid #ef4444; }
+
+        .operation-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .suma .operation-icon { color: #3b82f6; }
+        .resta .operation-icon { color: #10b981; }
+        .multiplicacion .operation-icon { color: #8b5cf6; }
+        .division .operation-icon { color: #f59e0b; }
+        .potencia .operation-icon { color: #ef4444; }
+
+        .operation-card h2 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .operation-card p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .calculator-page {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .calculator-page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .calculator-container {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .calculator-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .calculator-header h2 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .calculator-header .symbol {
+            font-size: 3rem;
+            font-weight: bold;
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-calculate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-calculate:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-back {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-back:hover {
+            background: #d0d0d0;
+        }
+
+        .btn-reset {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #d97706;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-container h3 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        footer p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        #home-page {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>
+            <span>🧮</span>
+            Calculadora Web Interactiva
+        </h1>
+        <p>Selecciona una operación matemática</p>
+    </header>
+
+    <main>
+        <!-- Página Principal (Menú) -->
+        <div id="home-page">
+            <div class="menu-container">
+                <div class="operation-card suma" onclick="navigateTo('suma')">
+                    <div class="operation-icon">➕</div>
+                    <h2>Suma</h2>
+                    <p>Adición de dos números</p>
+                </div>
+
+                <div class="operation-card resta" onclick="navigateTo('resta')">
+                    <div class="operation-icon">➖</div>
+                    <h2>Resta</h2>
+                    <p>Sustracción de dos números</p>
+                </div>
+
+                <div class="operation-card multiplicacion" onclick="navigateTo('multiplicacion')">
+                    <div class="operation-icon">✖️</div>
+                    <h2>Multiplicación</h2>
+                    <p>Producto de dos números</p>
+                </div>
+
+                <div class="operation-card division" onclick="navigateTo('division')">
+                    <div class="operation-icon">➗</div>
+                    <h2>División</h2>
+                    <p>Cociente de dos números</p>
+                </div>
+
+                <div class="operation-card potencia" onclick="navigateTo('potencia')">
+                    <div class="operation-icon">⚡</div>
+                    <h2>Potencia</h2>
+                    <p>Elevación a una potencia</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página de Suma -->
+        <div id="suma-page" class="calculator-page">
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <div class="symbol" style="background: #3b82f615; color: #3b82f6;">➕</div>
+                    <h2>Suma</h2>
+                </div>
+                <div class="input-group">
+                    <label>Primer número:</label>
+                    <input type="number" id="suma-num1" placeholder="Ingrese el primer número">
+                </div>
+                <div class="input-group">
+                    <label>Segundo número:</label>
+                    <input type="number" id="suma-num2" placeholder="Ingrese el segundo número">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-calculate" onclick="calculate('suma')">Calcular</button>
+                    <button class="btn btn-reset" onclick="reset('suma')">Limpiar</button>
+                    <button class="btn btn-back" onclick="goHome()">Volver</button>
+                </div>
+                <div id="suma-result" class="result-container">
+                    <h3>Resultado:</h3>
+                    <div class="result-value"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página de Resta -->
+        <div id="resta-page" class="calculator-page">
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <div class="symbol" style="background: #10b98115; color: #10b981;">➖</div>
+                    <h2>Resta</h2>
+                </div>
+                <div class="input-group">
+                    <label>Primer número:</label>
+                    <input type="number" id="resta-num1" placeholder="Ingrese el primer número">
+                </div>
+                <div class="input-group">
+                    <label>Segundo número:</label>
+                    <input type="number" id="resta-num2" placeholder="Ingrese el segundo número">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-calculate" onclick="calculate('resta')">Calcular</button>
+                    <button class="btn btn-reset" onclick="reset('resta')">Limpiar</button>
+                    <button class="btn btn-back" onclick="goHome()">Volver</button>
+                </div>
+                <div id="resta-result" class="result-container">
+                    <h3>Resultado:</h3>
+                    <div class="result-value"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página de Multiplicación -->
+        <div id="multiplicacion-page" class="calculator-page">
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <div class="symbol" style="background: #8b5cf615; color: #8b5cf6;">✖️</div>
+                    <h2>Multiplicación</h2>
+                </div>
+                <div class="input-group">
+                    <label>Primer número:</label>
+                    <input type="number" id="multiplicacion-num1" placeholder="Ingrese el primer número">
+                </div>
+                <div class="input-group">
+                    <label>Segundo número:</label>
+                    <input type="number" id="multiplicacion-num2" placeholder="Ingrese el segundo número">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-calculate" onclick="calculate('multiplicacion')">Calcular</button>
+                    <button class="btn btn-reset" onclick="reset('multiplicacion')">Limpiar</button>
+                    <button class="btn btn-back" onclick="goHome()">Volver</button>
+                </div>
+                <div id="multiplicacion-result" class="result-container">
+                    <h3>Resultado:</h3>
+                    <div class="result-value"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página de División -->
+        <div id="division-page" class="calculator-page">
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <div class="symbol" style="background: #f59e0b15; color: #f59e0b;">➗</div>
+                    <h2>División</h2>
+                </div>
+                <div class="input-group">
+                    <label>Dividendo:</label>
+                    <input type="number" id="division-num1" placeholder="Ingrese el dividendo">
+                </div>
+                <div class="input-group">
+                    <label>Divisor:</label>
+                    <input type="number" id="division-num2" placeholder="Ingrese el divisor">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-calculate" onclick="calculate('division')">Calcular</button>
+                    <button class="btn btn-reset" onclick="reset('division')">Limpiar</button>
+                    <button class="btn btn-back" onclick="goHome()">Volver</button>
+                </div>
+                <div id="division-result" class="result-container">
+                    <h3>Resultado:</h3>
+                    <div class="result-value"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Página de Potencia -->
+        <div id="potencia-page" class="calculator-page">
+            <div class="calculator-container">
+                <div class="calculator-header">
+                    <div class="symbol" style="background: #ef444415; color: #ef4444;">⚡</div>
+                    <h2>Potencia</h2>
+                </div>
+                <div class="input-group">
+                    <label>Base:</label>
+                    <input type="number" id="potencia-num1" placeholder="Ingrese la base">
+                </div>
+                <div class="input-group">
+                    <label>Exponente:</label>
+                    <input type="number" id="potencia-num2" placeholder="Ingrese el exponente">
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-calculate" onclick="calculate('potencia')">Calcular</button>
+                    <button class="btn btn-reset" onclick="reset('potencia')">Limpiar</button>
+                    <button class="btn btn-back" onclick="goHome()">Volver</button>
+                </div>
+                <div id="potencia-result" class="result-container">
+                    <h3>Resultado:</h3>
+                    <div class="result-value"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Calculadora Web Interactiva | Diseñado con 💜 | <a href="#" onclick="goHome(); return false;">Inicio</a></p>
+    </footer>
+
+    <script>
+        function navigateTo(operation) {
+            document.getElementById('home-page').style.display = 'none';
+            
+            const pages = document.querySelectorAll('.calculator-page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            const targetPage = document.getElementById(operation + '-page');
+            targetPage.classList.add('active');
+        }
+
+        function goHome() {
+            const pages = document.querySelectorAll('.calculator-page');
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            document.getElementById('home-page').style.display = 'block';
+        }
+
+        function calculate(operation) {
+            const num1 = parseFloat(document.getElementById(operation + '-num1').value);
+            const num2 = parseFloat(document.getElementById(operation + '-num2').value);
+            const resultContainer = document.getElementById(operation + '-result');
+            const resultValue = resultContainer.querySelector('.result-value');
+
+            if (isNaN(num1) || isNaN(num2)) {
+                resultValue.textContent = 'Por favor, ingrese números válidos';
+                resultValue.classList.add('error');
+                resultContainer.classList.add('show');
+                return;
+            }
+
+            let result;
+            resultValue.classList.remove('error');
+
+            switch(operation) {
+                case 'suma':
+                    result = num1 + num2;
+                    break;
+                case 'resta':
+                    result = num1 - num2;
+                    break;
+                case 'multiplicacion':
+                    result = num1 * num2;
+                    break;
+                case 'division':
+                    if (num2 === 0) {
+                        resultValue.textContent = 'Error: No se puede dividir por cero';
+                        resultValue.classList.add('error');
+                        resultContainer.classList.add('show');
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+                case 'potencia':
+                    result = Math.pow(num1, num2);
+                    break;
+            }
+
+            resultValue.textContent = result.toFixed(4).replace(/\.?0+$/, '');
+            resultContainer.classList.add('show');
+        }
+
+        function reset(operation) {
+            document.getElementById(operation + '-num1').value = '';
+            document.getElementById(operation + '-num2').value = '';
+            const resultContainer = document.getElementById(operation + '-result');
+            resultContainer.classList.remove('show');
+        }
+
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const activeOperation = document.querySelector('.calculator-page.active');
+                if (activeOperation) {
+                    const operationName = activeOperation.id.replace('-page', '');
+                    calculate(operationName);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
